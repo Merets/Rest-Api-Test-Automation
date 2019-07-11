@@ -1,0 +1,14 @@
+C:\Users\merets\source\repos\RestApiTestAutomation\bin\Debug\netcoreapp2.1\Microsoft.VisualStudio.TestPlatform.MSTest.TestAdapter.dll
+C:\Users\merets\source\repos\RestApiTestAutomation\bin\Debug\netcoreapp2.1\Microsoft.VisualStudio.TestPlatform.MSTestAdapter.PlatformServices.Interface.dll
+C:\Users\merets\source\repos\RestApiTestAutomation\bin\Debug\netcoreapp2.1\Microsoft.VisualStudio.TestPlatform.MSTestAdapter.PlatformServices.dll
+C:\Users\merets\source\repos\RestApiTestAutomation\bin\Debug\netcoreapp2.1\RestApiTestAutomation.deps.json
+C:\Users\merets\source\repos\RestApiTestAutomation\bin\Debug\netcoreapp2.1\RestApiTestAutomation.runtimeconfig.json
+C:\Users\merets\source\repos\RestApiTestAutomation\bin\Debug\netcoreapp2.1\RestApiTestAutomation.runtimeconfig.dev.json
+C:\Users\merets\source\repos\RestApiTestAutomation\bin\Debug\netcoreapp2.1\RestApiTestAutomation.dll
+C:\Users\merets\source\repos\RestApiTestAutomation\bin\Debug\netcoreapp2.1\RestApiTestAutomation.pdb
+C:\Users\merets\source\repos\RestApiTestAutomation\obj\Debug\netcoreapp2.1\RestApiTestAutomation.csprojAssemblyReference.cache
+C:\Users\merets\source\repos\RestApiTestAutomation\obj\Debug\netcoreapp2.1\RestApiTestAutomation.csproj.CoreCompileInputs.cache
+C:\Users\merets\source\repos\RestApiTestAutomation\obj\Debug\netcoreapp2.1\RestApiTestAutomation.AssemblyInfoInputs.cache
+C:\Users\merets\source\repos\RestApiTestAutomation\obj\Debug\netcoreapp2.1\RestApiTestAutomation.AssemblyInfo.cs
+C:\Users\merets\source\repos\RestApiTestAutomation\obj\Debug\netcoreapp2.1\RestApiTestAutomation.dll
+C:\Users\merets\source\repos\RestApiTestAutomation\obj\Debug\netcoreapp2.1\RestApiTestAutomation.pdb
