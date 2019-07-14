@@ -39,6 +39,7 @@ namespace RestApiTestAutomation.Tools
                     break;
                 case HttpMethod m when m == HttpMethod.Patch:
                     responseTask = client.PatchAsync(uriRequest, httpContent);
+                    expectedHttpStatusCode = System.Net.HttpStatusCode.NoContent;
                     break;
                 case HttpMethod m when m == HttpMethod.Delete:
                     responseTask = client.DeleteAsync(uriRequest);

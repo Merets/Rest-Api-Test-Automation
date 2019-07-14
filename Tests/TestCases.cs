@@ -178,5 +178,33 @@ namespace RestApiTestAutomation
         }
 
         #endregion Put Method
+
+        #region Patch Method
+        [TestCategory("Patch Method")]
+        [TestMethod]
+        public void UserWasUpdatedAfterPatchRequest()
+        {
+            string collection = "users";
+            var httpTool = new HttpTool();
+            var client = httpTool.CreateClient(BaseAddressUri, AcceptHeader);
+            var newUserId = httpTool.CreateAndPostRandomUser(BaseAddressUri, AcceptHeader);
+            var newUserFromServer = httpTool.GetUserById(client, newUserId);
+            var newUserName = $"Updated {newUserFromServer.Name}";
+            newUserFromServer.Name = newUserName;
+            var jsonUpdateString = $"{{'Name': '{newUserName}'}}";
+            string uriRequestPatch = $"api/{collection}/{newUserId}";
+
+            HttpContent httpContent = HttpTool.ConvertObjectToHttpContent(jsonUpdateString);
+            var httpResponseMessagePatch = httpTool.MakeRequestToServer(client, HttpMethod.Patch, uriRequestPatch, httpContent);
+            Task<string> readTask = HttpTool.ReadContentFromMessage(httpResponseMessagePatch);
+
+            var updatedUserFromServer = httpTool.GetUserById(client, newUserId);
+            client.Dispose();
+
+            Assert.IsTrue(updatedUserFromServer.Equals(newUserFromServer), $"The User in the Response is not the expected one!");
+        }
+
+        #endregion Patch Method
+
     }
 }
