@@ -206,5 +206,30 @@ namespace RestApiTestAutomation
 
         #endregion Patch Method
 
+        #region Delete Method
+        [TestCategory("Delete Method")]
+        [TestMethod]
+        public void UserWasDeletedAfterDeleteRequest()
+        {
+            string collection = "users";
+            var httpTool = new HttpTool();
+            var client = httpTool.CreateClient(BaseAddressUri, AcceptHeader);
+            var newUserId = httpTool.CreateAndPostRandomUser(BaseAddressUri, AcceptHeader);
+            var newUserFromServer = httpTool.GetUserById(client, newUserId);
+            var newUserName = $"Updated {newUserFromServer.Name}";
+            newUserFromServer.Name = newUserName;
+            string uriRequestDelete = $"api/{collection}/{newUserId}";
+
+            var httpResponseMessageDelete = httpTool.MakeRequestToServer(client, HttpMethod.Delete, uriRequestDelete);
+            Task<string> readTask = HttpTool.ReadContentFromMessage(httpResponseMessageDelete);
+
+            var httpResponseMessage = httpTool.EnsureObjectIsNotFound(client, uriRequestDelete);
+            client.Dispose();
+
+            Assert.IsTrue(httpResponseMessage.StatusCode == System.Net.HttpStatusCode.NotFound, $"The User was not deleted as expected!");
+        }
+
+        #endregion Delete Method
+
     }
 }

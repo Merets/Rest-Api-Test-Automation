@@ -20,7 +20,7 @@ namespace RestApiTestAutomation.Tools
             return client;
         }
 
-        internal HttpResponseMessage MakeRequestToServer(HttpClient client, HttpMethod httpMethod, string uriRequest, HttpContent httpContent=null)
+        internal HttpResponseMessage MakeRequestToServer(HttpClient client, HttpMethod httpMethod, string uriRequest, HttpContent httpContent = null)
         {
             Task<HttpResponseMessage> responseTask = null;
             System.Net.HttpStatusCode expectedHttpStatusCode = System.Net.HttpStatusCode.OK;
@@ -28,6 +28,7 @@ namespace RestApiTestAutomation.Tools
             {
                 case HttpMethod m when m == HttpMethod.Get:
                     responseTask = client.GetAsync(uriRequest);
+                    expectedHttpStatusCode = System.Net.HttpStatusCode.OK;
                     break;
                 case HttpMethod m when m == HttpMethod.Post:
                     responseTask = client.PostAsync(uriRequest, httpContent);
@@ -43,16 +44,31 @@ namespace RestApiTestAutomation.Tools
                     break;
                 case HttpMethod m when m == HttpMethod.Delete:
                     responseTask = client.DeleteAsync(uriRequest);
+                    expectedHttpStatusCode = System.Net.HttpStatusCode.NoContent;
                     break;
                 default:
                     break;
             }
-            
+
             responseTask.Wait();
 
             var httpResponseMessage = responseTask.Result;
 
             Assert.IsTrue(httpResponseMessage.IsSuccessStatusCode, httpResponseMessage.StatusCode.ToString());
+            Assert.IsTrue(httpResponseMessage.StatusCode == expectedHttpStatusCode, httpResponseMessage.StatusCode.ToString());
+
+            return httpResponseMessage;
+        }
+        internal HttpResponseMessage EnsureObjectIsNotFound(HttpClient client, string uriRequest)
+        {
+            Task<HttpResponseMessage> responseTask = client.GetAsync(uriRequest);
+            System.Net.HttpStatusCode expectedHttpStatusCode = System.Net.HttpStatusCode.NotFound;
+
+            responseTask.Wait();
+
+            var httpResponseMessage = responseTask.Result;
+
+            Assert.IsTrue(httpResponseMessage.IsSuccessStatusCode == false, httpResponseMessage.StatusCode.ToString());
             Assert.IsTrue(httpResponseMessage.StatusCode == expectedHttpStatusCode, httpResponseMessage.StatusCode.ToString());
 
             return httpResponseMessage;
