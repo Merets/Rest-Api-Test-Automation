@@ -8,9 +8,9 @@ using System.Threading.Tasks;
 
 namespace RestApiTestAutomation.Tools
 {
-    internal class HttpTool
+    internal static class HttpTool
     {
-        internal HttpClient CreateClient(string baseAddressUri, string acceptHeader)
+        internal static HttpClient CreateClient(string baseAddressUri, string acceptHeader)
         {
             var client = new HttpClient
             {
@@ -20,7 +20,7 @@ namespace RestApiTestAutomation.Tools
             return client;
         }
 
-        internal HttpResponseMessage MakeRequestToServer(HttpClient client, HttpMethod httpMethod, string uriRequest, HttpContent httpContent = null)
+        internal static HttpResponseMessage MakeRequestToServer(HttpClient client, HttpMethod httpMethod, string uriRequest, HttpContent httpContent = null)
         {
             Task<HttpResponseMessage> responseTask = null;
             System.Net.HttpStatusCode expectedHttpStatusCode = System.Net.HttpStatusCode.OK;
@@ -59,7 +59,7 @@ namespace RestApiTestAutomation.Tools
 
             return httpResponseMessage;
         }
-        internal HttpResponseMessage EnsureObjectIsNotFound(HttpClient client, string uriRequest)
+        internal static HttpResponseMessage EnsureObjectIsNotFound(HttpClient client, string uriRequest)
         {
             Task<HttpResponseMessage> responseTask = client.GetAsync(uriRequest);
             System.Net.HttpStatusCode expectedHttpStatusCode = System.Net.HttpStatusCode.NotFound;
@@ -74,7 +74,7 @@ namespace RestApiTestAutomation.Tools
             return httpResponseMessage;
         }
 
-        internal string CreateAndPostRandomUser(string baseAddressUri, string acceptHeader)
+        internal static string CreateAndPostRandomUser(string baseAddressUri, string acceptHeader)
         {
             var randomNumber = new Random().Next(1000, 9999);
             var randomUserName = $"RandomUser{randomNumber}";
@@ -88,6 +88,7 @@ namespace RestApiTestAutomation.Tools
             var httpContent = new StringContent(jsonUser.ToString(), Encoding.UTF8, "application/json");
 
             var httpResponseMessagePost = MakeRequestToServer(client, HttpMethod.Post, uriRequestPost, httpContent);
+            //AddCleanUpAction(() => DeleteUser(client, newUser.Id));
             var readTask = httpResponseMessagePost.Content.ReadAsStringAsync();
             readTask.Wait();
 
@@ -95,7 +96,15 @@ namespace RestApiTestAutomation.Tools
             return responseBodyAfterPost.Id;
         }
 
-        internal User GetUserById(HttpClient client, string userId)
+        public static void DeleteUser(HttpClient client, string userId)
+        {
+            string uriRequestDelete = $"api/users/{userId}";
+            var httpResponseMessagePost = MakeRequestToServer(client, HttpMethod.Delete, uriRequestDelete);
+            var readTask = httpResponseMessagePost.Content.ReadAsStringAsync();
+            readTask.Wait();
+        }
+
+        internal static User GetUserById(HttpClient client, string userId)
         {
             var uriRequestGet = $"api/users/{userId}";
             var httpResponseMessageGet = MakeRequestToServer(client, HttpMethod.Get, uriRequestGet);
