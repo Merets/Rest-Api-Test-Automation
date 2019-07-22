@@ -18,8 +18,5 @@ namespace RestApiTestAutomation.Tools
         {
             list.ToList().ForEach(u => Console.WriteLine(u.ToString()));
         }
-
-
-
     }
 }

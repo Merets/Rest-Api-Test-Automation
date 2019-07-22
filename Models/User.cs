@@ -17,15 +17,19 @@ namespace RestApiTestAutomation.Models
             if (other == null)
                 return false;
 
-            if (this.Name != other.Name ||
-                this.Age != other.Age ||
-                this.Location != other.Location ||
-                this.Work.Name != other.Work.Name ||
-                this.Work.Location != other.Work.Location ||
-                this.Work.Rating != other.Work.Rating
-                )
-                return false;
-            return true;
+            if (AreUsersEqual(this, other))
+                return true;
+            return false;
+        }
+
+        private static bool AreUsersEqual(User thisUser, User otherUser)
+        {
+            return thisUser.Name == otherUser.Name &&
+                    thisUser.Age == otherUser.Age &&
+                    thisUser.Location == otherUser.Location &&
+                    thisUser.Work.Name == otherUser.Work.Name &&
+                    thisUser.Work.Location == otherUser.Work.Location &&
+                    thisUser.Work.Rating == otherUser.Work.Rating;
         }
 
         public override string ToString()

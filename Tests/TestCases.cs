@@ -28,8 +28,6 @@ namespace RestApiTestAutomation
             AddCleanupAction(() => client.Dispose());
             var httpResponseMessage = HttpTool.MakeRequestToServer(client, HttpMethod.Get, uriRequest);
 
-            //var readTask = httpResponseMessage.Content.ReadAsStringAsync();
-            //readTask.Wait();
             Task<string> readTask = HttpTool.ReadContentFromMessage(httpResponseMessage);
 
             var collections = JsonConvert.DeserializeObject<List<string>>(readTask.Result);

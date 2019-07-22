@@ -85,22 +85,5 @@ namespace RestApiTestAutomation
         {
             _cleanupActions.Add(cleanupAction);
         }
-
-        //private List<Action> _cleanupActions = new List<Action>();
-
-        //public void AddCleanupAction(Action cleanupAction)
-        //{
-        //    _cleanupActions.Add(cleanupAction);
-        //}
-
-        //[TestCleanup]
-        //public void Cleanup()
-        //{
-        //    _cleanupActions.Reverse();
-        //    foreach (var action in _cleanupActions)
-        //    {
-        //        action();
-        //    }
-        //}
     }
 }

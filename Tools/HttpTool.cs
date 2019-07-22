@@ -88,7 +88,6 @@ namespace RestApiTestAutomation.Tools
             var httpContent = new StringContent(jsonUser.ToString(), Encoding.UTF8, "application/json");
 
             var httpResponseMessagePost = MakeRequestToServer(client, HttpMethod.Post, uriRequestPost, httpContent);
-            //AddCleanUpAction(() => DeleteUser(client, newUser.Id));
             var readTask = httpResponseMessagePost.Content.ReadAsStringAsync();
             readTask.Wait();
 
