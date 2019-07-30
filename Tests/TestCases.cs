@@ -5,6 +5,7 @@ using RestApiTestAutomation.Tools;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -303,6 +304,50 @@ namespace RestApiTestAutomation
 
 
         #region NegativeTests
+        [TestCategory("NegativeTests")]
+        [TestMethod]
+        public void NotFoundErrorAfterGetWrongCollectionRequest()
+        {
+            string collection = "WrongCollection";
+            var client = HttpTool.CreateClient(BaseAddressUri, AcceptHeader);
+            AddCleanupAction(() => client.Dispose());
+
+            var uriRequestGet = $"api/{collection}/";
+
+            var httpResponseMessageGet = HttpTool.MakeRequestToServer(client, HttpMethod.Get, uriRequestGet, toValidateStatusCode:false);
+            Assert.AreEqual(HttpStatusCode.NotFound, httpResponseMessageGet.StatusCode, "\"Not Found\" message should be in HttpResponseMessage!");
+        }
+
+        [TestCategory("NegativeTests")]
+        [TestMethod]
+        public void NotFoundErrorAfterGetNonexistentUserRequest()
+        {
+            string collection = "users";
+            var client = HttpTool.CreateClient(BaseAddressUri, AcceptHeader);
+            AddCleanupAction(() => client.Dispose());
+
+            object nonexistentUserId = 1000000;
+            var uriRequestGet = $"api/{collection}/{nonexistentUserId}";
+
+            var httpResponseMessageGet = HttpTool.MakeRequestToServer(client, HttpMethod.Get, uriRequestGet, toValidateStatusCode:false);
+            Assert.AreEqual(HttpStatusCode.NotFound, httpResponseMessageGet.StatusCode, "\"Not Found\" message should be in HttpResponseMessage!");
+        }
+
+        [TestCategory("NegativeTests")]
+        [TestMethod]
+        public void BadRequestErrorAfterGetWrongMethodRequest()
+        {
+            string collection = "users";
+            string method = "WrongMethod";
+
+            var client = HttpTool.CreateClient(BaseAddressUri, AcceptHeader);
+            AddCleanupAction(() => client.Dispose());
+
+            var uriRequestGet = $"api/{collection}/{method}";
+
+            var httpResponseMessageGet = HttpTool.MakeRequestToServer(client, HttpMethod.Get, uriRequestGet, toValidateStatusCode:false);
+            Assert.AreEqual(HttpStatusCode.BadRequest, httpResponseMessageGet.StatusCode, "\"Not Found\" message should be in HttpResponseMessage!");
+        }
 
         #endregion NegativeTests
     }
