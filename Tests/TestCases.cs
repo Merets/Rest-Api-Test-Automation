@@ -6,14 +6,16 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace RestApiTestAutomation
 {
     [TestClass]
-    public class TestCases: TestBase
+    public class TestCases : TestBase
     {
-        private const string BaseAddressUri = "http://localhost:5000/";
+        private const string BaseAddressUri = "https://localhost:44316/";
+        //private const string BaseAddressUri = "http://localhost:5000/";
         private const string AcceptHeader = "application/json";
 
         #region Get Method
@@ -27,10 +29,7 @@ namespace RestApiTestAutomation
             var client = HttpTool.CreateClient(BaseAddressUri, AcceptHeader);
             AddCleanupAction(() => client.Dispose());
             var httpResponseMessage = HttpTool.MakeRequestToServer(client, HttpMethod.Get, uriRequest);
-
-            Task<string> readTask = HttpTool.ReadContentFromMessage(httpResponseMessage);
-
-            var collections = JsonConvert.DeserializeObject<List<string>>(readTask.Result);
+            var collections = HttpTool.DeserializeFromResponseMessage<List<string>>(httpResponseMessage);
 
             Assert.IsTrue(collections.DoesIncludeList(expectedCollections), $"Not all expected collections were found in the Response!\nExpected: {string.Join(", ", expectedCollections.ToArray())}");
             collections.PrintAllList();
@@ -48,10 +47,7 @@ namespace RestApiTestAutomation
             var client = HttpTool.CreateClient(BaseAddressUri, AcceptHeader);
             AddCleanupAction(() => client.Dispose());
             var httpResponseMessage = HttpTool.MakeRequestToServer(client, HttpMethod.Get, uriRequest);
-
-            Task<string> readTask = HttpTool.ReadContentFromMessage(httpResponseMessage);
-
-            var users = JsonConvert.DeserializeObject<List<User>>(readTask.Result);
+            var users = HttpTool.DeserializeFromResponseMessage<List<User>>(httpResponseMessage);
             var userNames = users.Select(u => u.Name).ToList();
 
             Assert.IsTrue(userNames.DoesIncludeList(expectedNames), $"Not all expected Names were found in the Response!\nExpected: {string.Join(", ", expectedNames.ToArray())}");
@@ -64,15 +60,12 @@ namespace RestApiTestAutomation
             string collection = "users";
             int id = 6;
             string uriRequest = $"api/{collection}/{id}";
-            var expectedUser = new User() { Id = "6", Name = "Avraham", Age = 100, Location = "LA", Work = new Work() { Name = "Sela", Location = "BB", Rating = 5 } };
+            var expectedUser = new User() { UserId = 6, Name = "Avraham", Age = 100, Location = "LA", Work = new Work() { Name = "Sela", Location = "BB", Rating = 5 } };
 
             var client = HttpTool.CreateClient(BaseAddressUri, AcceptHeader);
             AddCleanupAction(() => client.Dispose());
             var httpResponseMessage = HttpTool.MakeRequestToServer(client, HttpMethod.Get, uriRequest);
-
-            Task<string> readTask = HttpTool.ReadContentFromMessage(httpResponseMessage);
-
-            var user = JsonConvert.DeserializeObject<User>(readTask.Result);
+            var user = HttpTool.DeserializeFromResponseMessage<User>(httpResponseMessage);
 
             Assert.IsTrue(user.Equals(expectedUser), $"Response does not include the expected User by Id = {id}");
             Console.WriteLine(user);
@@ -115,31 +108,24 @@ namespace RestApiTestAutomation
         {
             var randomNumber = new Random().Next(1000, 9999);
             var randomUserName = $"RandomUser{randomNumber}";
-            var newUser = new User() { Id = "0", Name = randomUserName, Age = 20, Location = "NY", Work = new Work() { Name = "Sela", Location = "BB", Rating = 5 } };
+            var newUser = new User { Name = randomUserName, Age = 20, Location = "NY", Work = new Work() { Name = "Sela", Location = "BB", Rating = 5 } };
 
             string collection = "users";
             string uriRequestPost = $"api/{collection}";
 
             var client = HttpTool.CreateClient(BaseAddressUri, AcceptHeader);
             AddCleanupAction(() => client.Dispose());
-            HttpContent httpContent = HttpTool.ConvertObjectToHttpContent(newUser);
+            HttpContent httpContent = HttpTool.ConvertObjectToHttpContent((UserDTO)newUser);
 
             var httpResponseMessagePost = HttpTool.MakeRequestToServer(client, HttpMethod.Post, uriRequestPost, httpContent);
-
-            Task<string> readTask = HttpTool.ReadContentFromMessage(httpResponseMessagePost);
-
-            var responseBodyAfterPost = JsonConvert.DeserializeObject<JsonResponse>(readTask.Result);
-            var responsedUserId = responseBodyAfterPost.Id;
+            var responseUserAfterPost = HttpTool.DeserializeFromResponseMessage<User>(httpResponseMessagePost);
+            var responsedUserId = responseUserAfterPost.UserId;
             AddCleanupAction(() => HttpTool.DeleteUser(client, responsedUserId));
 
             var uriRequestGet = $"api/{collection}/{responsedUserId}";
 
             var httpResponseMessageGet = HttpTool.MakeRequestToServer(client, HttpMethod.Get, uriRequestGet);
-
-            readTask = HttpTool.ReadContentFromMessage(httpResponseMessageGet);
-
-            var userAfterGet = JsonConvert.DeserializeObject<User>(readTask.Result);
-
+            var userAfterGet = HttpTool.DeserializeFromResponseMessage<User>(httpResponseMessageGet);
             Assert.IsTrue(userAfterGet.Equals(newUser), $"The User in the Response is not the expected one!");
         }
 
@@ -160,9 +146,9 @@ namespace RestApiTestAutomation
             var newUserName = $"Updated {newUserFromServer.Name}";
             newUserFromServer.Name = newUserName;
 
-            string uriRequestPut = $"api/{collection}/{newUserFromServer.Id}";
+            string uriRequestPut = $"api/{collection}/{newUserFromServer.UserId}";
 
-            HttpContent httpContent = HttpTool.ConvertObjectToHttpContent(newUserFromServer);
+            HttpContent httpContent = HttpTool.ConvertObjectToHttpContent((UserDTO)newUserFromServer);
             var httpResponseMessagePut = HttpTool.MakeRequestToServer(client, HttpMethod.Put, uriRequestPut, httpContent);
             Task<string> readTask = HttpTool.ReadContentFromMessage(httpResponseMessagePut);
 
@@ -186,10 +172,10 @@ namespace RestApiTestAutomation
             var newUserFromServer = HttpTool.GetUserById(client, newUserId);
             var newUserName = $"Updated {newUserFromServer.Name}";
             newUserFromServer.Name = newUserName;
-            var jsonUpdateString = $"{{'Name': '{newUserName}'}}";
+            var updatedUser = new User { UserId = newUserId, Name = newUserName };
             string uriRequestPatch = $"api/{collection}/{newUserId}";
 
-            HttpContent httpContent = HttpTool.ConvertObjectToHttpContent(jsonUpdateString);
+            HttpContent httpContent = HttpTool.ConvertObjectToHttpContent((UserDTO)updatedUser);
             var httpResponseMessagePatch = HttpTool.MakeRequestToServer(client, HttpMethod.Patch, uriRequestPatch, httpContent);
             Task<string> readTask = HttpTool.ReadContentFromMessage(httpResponseMessagePatch);
 
@@ -209,9 +195,6 @@ namespace RestApiTestAutomation
             var client = HttpTool.CreateClient(BaseAddressUri, AcceptHeader);
             AddCleanupAction(() => client.Dispose());
             var newUserId = HttpTool.CreateAndPostRandomUser(BaseAddressUri, AcceptHeader);
-            var newUserFromServer = HttpTool.GetUserById(client, newUserId);
-            var newUserName = $"Updated {newUserFromServer.Name}";
-            newUserFromServer.Name = newUserName;
             string uriRequestDelete = $"api/{collection}/{newUserId}";
 
             var httpResponseMessageDelete = HttpTool.MakeRequestToServer(client, HttpMethod.Delete, uriRequestDelete);
@@ -224,5 +207,103 @@ namespace RestApiTestAutomation
 
         #endregion Delete Method
 
+        [TestCategory("Temp")]
+        [TestMethod]
+        public void CreateAndPostUsersInLoop()
+        {
+            for (int i = 0; i < 100; i++)
+            {
+                var randomNumber = new Random().Next(1000, 9999);
+                var randomUserName = $"RandomUser{randomNumber}";
+                var newUser = new User { Name = randomUserName, Age = 20, Location = "NY", Work = new Work() { Name = "Sela", Location = "BB", Rating = 5 } };
+
+                string collection = "users";
+                string uriRequestPost = $"api/{collection}";
+
+                var client = HttpTool.CreateClient(BaseAddressUri, AcceptHeader);
+                AddCleanupAction(() => client.Dispose());
+                HttpContent httpContent = HttpTool.ConvertObjectToHttpContent((UserDTO)newUser);
+
+                var httpResponseMessagePost = HttpTool.MakeRequestToServer(client, HttpMethod.Post, uriRequestPost, httpContent);
+                var responseUserAfterPost = HttpTool.DeserializeFromResponseMessage<User>(httpResponseMessagePost);
+                var responsedUserId = responseUserAfterPost.UserId;
+
+                var uriRequestGet = $"api/{collection}/{responsedUserId}";
+
+                var httpResponseMessageGet = HttpTool.MakeRequestToServer(client, HttpMethod.Get, uriRequestGet);
+                var userAfterGet = HttpTool.DeserializeFromResponseMessage<User>(httpResponseMessageGet);
+                Assert.IsTrue(userAfterGet.Equals(newUser), $"The User in the Response is not the expected one!");
+            }
+        }
+
+
+        [TestCategory("Temp")]
+        [TestMethod]
+        public void DeleteUsersInLoop()
+        {
+            string collection = "users";
+            var client = HttpTool.CreateClient(BaseAddressUri, AcceptHeader);
+            AddCleanupAction(() => client.Dispose());
+            for (int userId = 8; userId <= 107; userId++)
+            {
+                string uriRequestDelete = $"api/{collection}/{userId}";
+
+                var httpResponseMessageDelete = HttpTool.MakeRequestToServer(client, HttpMethod.Delete, uriRequestDelete);
+                Task<string> readTask = HttpTool.ReadContentFromMessage(httpResponseMessageDelete);
+
+                var httpResponseMessage = HttpTool.EnsureObjectIsNotFound(client, uriRequestDelete);
+
+                Assert.IsTrue(httpResponseMessage.StatusCode == System.Net.HttpStatusCode.NotFound, $"The User was not deleted as expected!");
+            }
+        }
+
+
+        [TestCategory("Temp")]
+        [TestMethod]
+        public void PostAndDeleteUsersInLoop()
+        {
+            for (int i = 0; i < 100; i++)
+            {
+                // Post
+                var randomNumber = new Random().Next(1000, 9999);
+                var randomUserName = $"RandomUser{randomNumber}";
+                var newUser = new User { Name = randomUserName, Age = 20, Location = "NY", Work = new Work() { Name = "Sela", Location = "BB", Rating = 5 } };
+
+                string collection = "users";
+                string uriRequestPost = $"api/{collection}";
+
+                var client = HttpTool.CreateClient(BaseAddressUri, AcceptHeader);
+                AddCleanupAction(() => client.Dispose());
+                HttpContent httpContent = HttpTool.ConvertObjectToHttpContent((UserDTO)newUser);
+
+                var httpResponseMessagePost = HttpTool.MakeRequestToServer(client, HttpMethod.Post, uriRequestPost, httpContent);
+                var responseUserAfterPost = HttpTool.DeserializeFromResponseMessage<User>(httpResponseMessagePost);
+                var responsedUserId = responseUserAfterPost.UserId;
+
+                var uriRequestGet = $"api/{collection}/{responsedUserId}";
+
+                var httpResponseMessageGet = HttpTool.MakeRequestToServer(client, HttpMethod.Get, uriRequestGet);
+                var userAfterGet = HttpTool.DeserializeFromResponseMessage<User>(httpResponseMessageGet);
+                Assert.IsTrue(userAfterGet.Equals(newUser), $"The User in the Response is not the expected one!");
+
+                // Delete
+                var userId = userAfterGet.UserId;
+                string uriRequestDelete = $"api/{collection}/{userId}";
+
+                var httpResponseMessageDelete = HttpTool.MakeRequestToServer(client, HttpMethod.Delete, uriRequestDelete);
+                Task<string> readTask = HttpTool.ReadContentFromMessage(httpResponseMessageDelete);
+
+                var httpResponseMessage = HttpTool.EnsureObjectIsNotFound(client, uriRequestDelete);
+
+                Assert.IsTrue(httpResponseMessage.StatusCode == System.Net.HttpStatusCode.NotFound, $"The User was not deleted as expected!");
+
+            }
+        }
+
+
+
+        #region NegativeTests
+
+        #endregion NegativeTests
     }
 }
