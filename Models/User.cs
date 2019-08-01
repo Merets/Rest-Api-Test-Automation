@@ -29,7 +29,7 @@ namespace RestApiTestAutomation.Models
 
         public override string ToString()
         {
-            return $"Id: {UserId}\t\tName: {Name}\t\tAge: {Age}\t\tLocation: {Location}\t\t{Work}";
+            return $"Id: {Id}\t\tName: {Name}\t\tAge: {Age}\t\tLocation: {Location}\t\t{Work}";
         }
 
         public override int GetHashCode()

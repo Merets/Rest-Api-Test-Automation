@@ -15,26 +15,11 @@ namespace RestApiTestAutomation
     [TestClass]
     public class TestCases : TestBase
     {
-        private const string BaseAddressUri = "https://localhost:44316/";
-        //private const string BaseAddressUri = "http://localhost:5000/";
+        private const string BaseAddressUri = "https://localhost:44316/";   // WebApplication
+        //private const string BaseAddressUri = "http://localhost:5000/";   // FakeServer
         private const string AcceptHeader = "application/json";
 
         #region Get Method
-        [TestCategory("Get Method")]
-        [TestMethod]
-        public void ResponseContainsCollectionsAfterRequestListOfAllCollections()
-        {
-            string uriRequest = $"api";
-            var expectedCollections = new List<string> { "users", "movies", "families" };
-
-            var client = HttpTool.CreateClient(BaseAddressUri, AcceptHeader);
-            AddCleanupAction(() => client.Dispose());
-            var httpResponseMessage = HttpTool.MakeRequestToServer(client, HttpMethod.Get, uriRequest);
-            var collections = HttpTool.DeserializeFromResponseMessage<List<string>>(httpResponseMessage);
-
-            Assert.IsTrue(collections.DoesIncludeList(expectedCollections), $"Not all expected collections were found in the Response!\nExpected: {string.Join(", ", expectedCollections.ToArray())}");
-            collections.PrintAllList();
-        }
 
 
         [TestCategory("Get Method")]
@@ -61,7 +46,7 @@ namespace RestApiTestAutomation
             string collection = "users";
             int id = 6;
             string uriRequest = $"api/{collection}/{id}";
-            var expectedUser = new User() { UserId = 6, Name = "Avraham", Age = 100, Location = "LA", Work = new Work() { Name = "Sela", Location = "BB", Rating = 5 } };
+            var expectedUser = new User() { Id = 6, Name = "Avraham", Age = 100, Location = "LA", Work = new Work() { Name = "Sela", Location = "BB", Rating = 5 } };
 
             var client = HttpTool.CreateClient(BaseAddressUri, AcceptHeader);
             AddCleanupAction(() => client.Dispose());
@@ -72,8 +57,23 @@ namespace RestApiTestAutomation
             Console.WriteLine(user);
         }
 
-        [TestCategory("Get Method")]
-        [TestMethod]
+
+        // For FakeServer
+        public void ResponseContainsCollectionsAfterRequestListOfAllCollections()
+        {
+            string uriRequest = $"api";
+            var expectedCollections = new List<string> { "users", "movies", "families" };
+
+            var client = HttpTool.CreateClient(BaseAddressUri, AcceptHeader);
+            AddCleanupAction(() => client.Dispose());
+            var httpResponseMessage = HttpTool.MakeRequestToServer(client, HttpMethod.Get, uriRequest);
+            var collections = HttpTool.DeserializeFromResponseMessage<List<string>>(httpResponseMessage);
+
+            Assert.IsTrue(collections.DoesIncludeList(expectedCollections), $"Not all expected collections were found in the Response!\nExpected: {string.Join(", ", expectedCollections.ToArray())}");
+            collections.PrintAllList();
+        }
+        
+        // For FakeServer
         public void ResponseContainsHeadersAfterHeadersRequest()
         {
             string uriRequest = $"api";
@@ -100,6 +100,7 @@ namespace RestApiTestAutomation
             Assert.IsTrue(timeDiffTotalSeconds < 3, "date Header should be valid in the Response");
             Assert.AreEqual(expectedServerHeader, serverHeader, "server Header should be valid in the Response");
         }
+
         #endregion Get Method
 
         #region Post Method
@@ -119,8 +120,9 @@ namespace RestApiTestAutomation
             HttpContent httpContent = HttpTool.ConvertObjectToHttpContent((UserDTO)newUser);
 
             var httpResponseMessagePost = HttpTool.MakeRequestToServer(client, HttpMethod.Post, uriRequestPost, httpContent);
-            var responseUserAfterPost = HttpTool.DeserializeFromResponseMessage<User>(httpResponseMessagePost);
-            var responsedUserId = responseUserAfterPost.UserId;
+            var responseUserAfterPost = HttpTool.DeserializeFromResponseMessage<JsonResponseUserId>(httpResponseMessagePost);
+            //var responseUserAfterPost = HttpTool.DeserializeFromResponseMessage<User>(httpResponseMessagePost);
+            var responsedUserId = responseUserAfterPost.Id;
             AddCleanupAction(() => HttpTool.DeleteUser(client, responsedUserId));
 
             var uriRequestGet = $"api/{collection}/{responsedUserId}";
@@ -147,7 +149,7 @@ namespace RestApiTestAutomation
             var newUserName = $"Updated {newUserFromServer.Name}";
             newUserFromServer.Name = newUserName;
 
-            string uriRequestPut = $"api/{collection}/{newUserFromServer.UserId}";
+            string uriRequestPut = $"api/{collection}/{newUserFromServer.Id}";
 
             HttpContent httpContent = HttpTool.ConvertObjectToHttpContent((UserDTO)newUserFromServer);
             var httpResponseMessagePut = HttpTool.MakeRequestToServer(client, HttpMethod.Put, uriRequestPut, httpContent);
@@ -173,7 +175,7 @@ namespace RestApiTestAutomation
             var newUserFromServer = HttpTool.GetUserById(client, newUserId);
             var newUserName = $"Updated {newUserFromServer.Name}";
             newUserFromServer.Name = newUserName;
-            var updatedUser = new User { UserId = newUserId, Name = newUserName };
+            var updatedUser = new User { Id = newUserId, Name = newUserName };
             string uriRequestPatch = $"api/{collection}/{newUserId}";
 
             HttpContent httpContent = HttpTool.ConvertObjectToHttpContent((UserDTO)updatedUser);
@@ -212,7 +214,7 @@ namespace RestApiTestAutomation
         [TestMethod]
         public void CreateAndPostUsersInLoop()
         {
-            for (int i = 0; i < 100; i++)
+            for (int i = 0; i < 10; i++)
             {
                 var randomNumber = new Random().Next(1000, 9999);
                 var randomUserName = $"RandomUser{randomNumber}";
@@ -227,7 +229,7 @@ namespace RestApiTestAutomation
 
                 var httpResponseMessagePost = HttpTool.MakeRequestToServer(client, HttpMethod.Post, uriRequestPost, httpContent);
                 var responseUserAfterPost = HttpTool.DeserializeFromResponseMessage<User>(httpResponseMessagePost);
-                var responsedUserId = responseUserAfterPost.UserId;
+                var responsedUserId = responseUserAfterPost.Id;
 
                 var uriRequestGet = $"api/{collection}/{responsedUserId}";
 
@@ -245,7 +247,7 @@ namespace RestApiTestAutomation
             string collection = "users";
             var client = HttpTool.CreateClient(BaseAddressUri, AcceptHeader);
             AddCleanupAction(() => client.Dispose());
-            for (int userId = 8; userId <= 107; userId++)
+            for (int userId = 8; userId <= 9; userId++)
             {
                 string uriRequestDelete = $"api/{collection}/{userId}";
 
@@ -279,7 +281,7 @@ namespace RestApiTestAutomation
 
                 var httpResponseMessagePost = HttpTool.MakeRequestToServer(client, HttpMethod.Post, uriRequestPost, httpContent);
                 var responseUserAfterPost = HttpTool.DeserializeFromResponseMessage<User>(httpResponseMessagePost);
-                var responsedUserId = responseUserAfterPost.UserId;
+                var responsedUserId = responseUserAfterPost.Id;
 
                 var uriRequestGet = $"api/{collection}/{responsedUserId}";
 
@@ -288,7 +290,7 @@ namespace RestApiTestAutomation
                 Assert.IsTrue(userAfterGet.Equals(newUser), $"The User in the Response is not the expected one!");
 
                 // Delete
-                var userId = userAfterGet.UserId;
+                var userId = userAfterGet.Id;
                 string uriRequestDelete = $"api/{collection}/{userId}";
 
                 var httpResponseMessageDelete = HttpTool.MakeRequestToServer(client, HttpMethod.Delete, uriRequestDelete);

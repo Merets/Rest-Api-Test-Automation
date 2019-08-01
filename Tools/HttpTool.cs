@@ -104,7 +104,7 @@ namespace RestApiTestAutomation.Tools
 
             var httpResponseMessagePost = MakeRequestToServer(client, HttpMethod.Post, uriRequestPost, httpContent);
             var responseUserAfterPost = DeserializeFromResponseMessage<User>(httpResponseMessagePost);
-            return responseUserAfterPost.UserId;
+            return responseUserAfterPost.Id;
         }
 
         public static void DeleteUser(HttpClient client, int userId)
