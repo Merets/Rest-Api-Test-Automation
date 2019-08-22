@@ -14,10 +14,13 @@ namespace RestApiTestAutomation.Tools
     {
         internal static HttpClient CreateClient(string baseAddressUri, string acceptHeader)
         {
+            // DEMO 03: Setting of Base Address
             var client = new HttpClient
             {
                 BaseAddress = new Uri(baseAddressUri)
             };
+
+            // DEMO 04: Adding default Headers
             client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue(acceptHeader));
             return client;
         }
@@ -26,6 +29,7 @@ namespace RestApiTestAutomation.Tools
         {
             Task<HttpResponseMessage> responseTask = null;
             System.Net.HttpStatusCode expectedHttpStatusCode = System.Net.HttpStatusCode.OK;
+            // DEMO 09: Determine which Request to send to the URI, by HTTP-Method type, Asynchronous operation
             switch (httpMethod)
             {
                 case HttpMethod m when m == HttpMethod.Get:
@@ -52,24 +56,32 @@ namespace RestApiTestAutomation.Tools
                     break;
             }
 
+            // DEMO 10: Wait for Asynchronous Operation (Task) to finish
             responseTask.Wait();
 
+            // DEMO 11: Extract of the Response Message
             var httpResponseMessage = responseTask.Result;
 
+            // DEMO 12: Validation of Response Message
             if (toValidateStatusCode)
                 ValidateStatusCode(httpMethod, expectedHttpStatusCode, httpResponseMessage);
 
-            if (httpResponseMessage.IsSuccessStatusCode == false)
-                Console.WriteLine($"Failure in Api Method {httpMethod.Method}, StatusCode failed: {httpResponseMessage.StatusCode}");
-            if (httpResponseMessage.StatusCode == expectedHttpStatusCode)
-                Console.WriteLine($"Failure in Api Method {httpMethod.Method}, Expected StatusCode = {expectedHttpStatusCode}, Actual StatusCode = {httpResponseMessage.StatusCode}");
+            PrintToLogOnFailure(httpMethod, expectedHttpStatusCode, httpResponseMessage);
 
             return httpResponseMessage;
         }
 
+        private static void PrintToLogOnFailure(HttpMethod httpMethod, System.Net.HttpStatusCode expectedHttpStatusCode, HttpResponseMessage httpResponseMessage)
+        {
+            if (httpResponseMessage.IsSuccessStatusCode == false)
+                Console.WriteLine($"Failure in Api Method {httpMethod.Method}, StatusCode failed: {httpResponseMessage.StatusCode}, Reason: {httpResponseMessage.ReasonPhrase}");
+            if (httpResponseMessage.StatusCode == expectedHttpStatusCode)
+                Console.WriteLine($"Failure in Api Method {httpMethod.Method}, Expected StatusCode = {expectedHttpStatusCode}, Actual StatusCode = {httpResponseMessage.StatusCode}");
+        }
+
         private static void ValidateStatusCode(HttpMethod httpMethod, System.Net.HttpStatusCode expectedHttpStatusCode, HttpResponseMessage httpResponseMessage)
         {
-            Assert.IsTrue(httpResponseMessage.IsSuccessStatusCode, $"Failure in Api Method {httpMethod.Method}, StatusCode failed: {httpResponseMessage.StatusCode}");
+            Assert.IsTrue(httpResponseMessage.IsSuccessStatusCode, $"Failure in Api Method {httpMethod.Method}, StatusCode failed: {httpResponseMessage.StatusCode}, Reason: {httpResponseMessage.ReasonPhrase}");
             Assert.IsTrue(httpResponseMessage.StatusCode == expectedHttpStatusCode, $"Failure in Api Method {httpMethod.Method}, Expected StatusCode = {expectedHttpStatusCode}, Actual StatusCode = {httpResponseMessage.StatusCode}");
         }
 
@@ -82,7 +94,7 @@ namespace RestApiTestAutomation.Tools
 
             var httpResponseMessage = responseTask.Result;
 
-            Assert.IsTrue(httpResponseMessage.IsSuccessStatusCode == false, httpResponseMessage.StatusCode.ToString());
+            Assert.IsTrue(httpResponseMessage.IsSuccessStatusCode == false, httpResponseMessage.ReasonPhrase);
             Assert.IsTrue(httpResponseMessage.StatusCode == expectedHttpStatusCode, httpResponseMessage.StatusCode.ToString());
 
             return httpResponseMessage;
@@ -124,6 +136,7 @@ namespace RestApiTestAutomation.Tools
 
         public static T DeserializeFromResponseMessage<T>(HttpResponseMessage httpResponseMessage)
         {
+            // DEMO 14: Read Content and Deserialization by specific Class
             Task<string> readTask = ReadContentFromMessage(httpResponseMessage);
             var deserializedObject = JsonConvert.DeserializeObject<T>(readTask.Result);
             return deserializedObject;
@@ -136,13 +149,16 @@ namespace RestApiTestAutomation.Tools
 
         public static HttpContent ConvertObjectToHttpContent(object objectToConvert)
         {
+            // DEMO 06: Newtonsoft Package - Json serialization
             var jsonObject = JsonConvert.SerializeObject(objectToConvert);
+            // DEMO 07: Conversion Json Object to HTTP Content (Entity Body and Content Headers)
             HttpContent httpContent = ConvertJsonToHttpContent(jsonObject);
             return httpContent;
         }
 
         public static Task<string> ReadContentFromMessage(HttpResponseMessage httpResponseMessage)
         {
+            // DEMO 15: Asynchronous operation of reading string text from Content
             var readTask = httpResponseMessage.Content.ReadAsStringAsync();
             readTask.Wait();
             return readTask;

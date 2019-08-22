@@ -39,6 +39,7 @@ namespace RestApiTestAutomation
             Assert.IsTrue(userNames.DoesIncludeList(expectedNames), $"Not all expected Names were found in the Response!\nExpected: {string.Join(", ", expectedNames.ToArray())}");
             users.PrintAllList();
         }
+
         [TestCategory("Get Method")]
         [TestMethod]
         public void ResponseContainsUserDetailsAfterRequestOfUserById()
@@ -46,7 +47,7 @@ namespace RestApiTestAutomation
             string collection = "users";
             int id = 6;
             string uriRequest = $"api/{collection}/{id}";
-            var expectedUser = new User() { Id = 6, Name = "Avraham", Age = 100, Location = "LA", Work = new Work() { Name = "Sela", Location = "BB", Rating = 5 } };
+            var expectedUser = new User() { Id = 6, Name = "Avraham", Age = 32, Location = "LA", Work = new Work() { Name = "Samsung", Location = "SK", Rating = 5.0 } };
 
             var client = HttpTool.CreateClient(BaseAddressUri, AcceptHeader);
             AddCleanupAction(() => client.Dispose());
@@ -108,6 +109,7 @@ namespace RestApiTestAutomation
         [TestMethod]
         public void ResponseContainsUserAfterUserIsCreated()
         {
+            // DEMO 01: Creation of random User
             var randomNumber = new Random().Next(1000, 9999);
             var randomUserName = $"RandomUser{randomNumber}";
             var newUser = new User { Name = randomUserName, Age = 20, Location = "NY", Work = new Work() { Name = "Sela", Location = "BB", Rating = 5 } };
@@ -115,20 +117,28 @@ namespace RestApiTestAutomation
             string collection = "users";
             string uriRequestPost = $"api/{collection}";
 
+            // DEMO 02: HTTP Client Creation - with URI and Headers
             var client = HttpTool.CreateClient(BaseAddressUri, AcceptHeader);
             AddCleanupAction(() => client.Dispose());
+            // DEMO 05: Serialization of Json Object 
             HttpContent httpContent = HttpTool.ConvertObjectToHttpContent((UserDTO)newUser);
 
+            // DEMO 08: Client makes Request to server, by providing Method, URI and HttpContent
             var httpResponseMessagePost = HttpTool.MakeRequestToServer(client, HttpMethod.Post, uriRequestPost, httpContent);
+
+            // DEMO 13: Deserialization by specific Class, if I want to crop any specific data from large Json Object.
             var responseUserAfterPost = HttpTool.DeserializeFromResponseMessage<JsonResponseUserId>(httpResponseMessagePost);
             //var responseUserAfterPost = HttpTool.DeserializeFromResponseMessage<User>(httpResponseMessagePost);
             var responsedUserId = responseUserAfterPost.Id;
             AddCleanupAction(() => HttpTool.DeleteUser(client, responsedUserId));
 
+            // DEMO 16: Making of GET Request, to get the User just created
             var uriRequestGet = $"api/{collection}/{responsedUserId}";
 
             var httpResponseMessageGet = HttpTool.MakeRequestToServer(client, HttpMethod.Get, uriRequestGet);
+            // DEMO 17: Deserialization by specific Class, this time by User
             var userAfterGet = HttpTool.DeserializeFromResponseMessage<User>(httpResponseMessageGet);
+            // DEMO 18: Compare between users - [User after Get Request from the Server] vs. [User created in the beginning]
             Assert.IsTrue(userAfterGet.Equals(newUser), $"The User in the Response is not the expected one!");
         }
 

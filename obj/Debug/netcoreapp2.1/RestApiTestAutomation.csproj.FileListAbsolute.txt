@@ -6,7 +6,6 @@ C:\Users\merets\source\repos\RestApiTestAutomation\bin\Debug\netcoreapp2.1\RestA
 C:\Users\merets\source\repos\RestApiTestAutomation\bin\Debug\netcoreapp2.1\RestApiTestAutomation.runtimeconfig.dev.json
 C:\Users\merets\source\repos\RestApiTestAutomation\bin\Debug\netcoreapp2.1\RestApiTestAutomation.dll
 C:\Users\merets\source\repos\RestApiTestAutomation\bin\Debug\netcoreapp2.1\RestApiTestAutomation.pdb
-C:\Users\merets\source\repos\RestApiTestAutomation\obj\Debug\netcoreapp2.1\RestApiTestAutomation.csprojAssemblyReference.cache
 C:\Users\merets\source\repos\RestApiTestAutomation\obj\Debug\netcoreapp2.1\RestApiTestAutomation.csproj.CoreCompileInputs.cache
 C:\Users\merets\source\repos\RestApiTestAutomation\obj\Debug\netcoreapp2.1\RestApiTestAutomation.AssemblyInfoInputs.cache
 C:\Users\merets\source\repos\RestApiTestAutomation\obj\Debug\netcoreapp2.1\RestApiTestAutomation.AssemblyInfo.cs
